@@ -10,6 +10,7 @@ enum NamesToEasilyIdentifyTheMenuItemsInsteadOfRawNumbers
 {
 	// Main Menu
 	SINGLE_PLAYER,
+	DOUBLE_PLAYER,
 	GAME_SETTINGS,
 	GUI_OPTIONS,
 	CONTROLS,
@@ -29,6 +30,11 @@ enum NamesToEasilyIdentifyTheMenuItemsInsteadOfRawNumbers
 	HOLD_PIECE,
 	GHOST_PIECE,
 
+	// Double Player Submenu
+	MAKE_READY,
+	SERVER_IP_ADDR,
+	HOST_SERVER,
+	
 	// Game Settings
 	SHOW_STATISTICS,
 	RANDOM_ALGORITHM,
@@ -70,6 +76,8 @@ GameStateMainMenu::GameStateMainMenu():
 	menu(NULL),
 	menuSinglePlayer(NULL),
 	menuSinglePlayerActivated(false),
+	menuDoublePlayer(NULL),
+	menuDoublePlayerActivated(false),
 	menuGameSettings(NULL),
 	menuGameSettingsActivated(false),
 	menuGUIOptions(NULL),
@@ -78,7 +86,8 @@ GameStateMainMenu::GameStateMainMenu():
 	menuProfilesActivated(false),
 	menuControls(NULL),
 	menuControlsActivated(false),
-	helpWindows(NULL)
+	helpWindows(NULL),
+	connectWindows(NULL)
 { }
 GameStateMainMenu::~GameStateMainMenu()
 { }
@@ -86,21 +95,24 @@ void GameStateMainMenu::load(int stack)
 {
 	UNUSED(stack);
 
-	this->layout = new LayoutMainMenu(80, 24, this);
+	this->layout = new LayoutMainMenu(100, 30, this);
 
 	createMainMenu();
 	createSinglePlayerMenu();
+	createDoublePlayerMenu();
 	createGameSettingsMenu();
 	createGUIOptionsMenu();
 	createProfilesMenu();
 	createControlsMenu();
 
 	this->helpWindows = new WindowGameHelp();
+	this->connectWindows = new WindowGameConnect();
 }
 
 int GameStateMainMenu::unload()
 {
 	saveSettingsMenuSinglePlayer();
+	saveSettingsMenuDoublePlayer();
 	saveSettingsMenuOptions();
 
 	SAFE_DELETE(this->layout);
@@ -108,6 +120,7 @@ int GameStateMainMenu::unload()
 	SAFE_DELETE(this->menuControls);
 	SAFE_DELETE(this->menuGameSettings);
 	SAFE_DELETE(this->menuGUIOptions);
+	SAFE_DELETE(this->menuDoublePlayer);
 	SAFE_DELETE(this->menuSinglePlayer);
 	SAFE_DELETE(this->menu);
 
@@ -219,6 +232,32 @@ GameState::StateCode GameStateMainMenu::update()
 				break;
 			}
 			this->menuSinglePlayer->reset();
+		}
+	}
+	else if (this->menuDoublePlayerActivated)
+	{
+		this->menuDoublePlayer->handleInput();
+
+		if (this->menuDoublePlayer->willQuit())
+		{
+			saveSettingsMenuDoublePlayer();
+
+			// And then exit based on the selected option.
+			switch (this->menuDoublePlayer->currentID())
+			{
+			case START_GAME:
+				return GameState::GAME_START;
+				break;
+
+			case MAKE_READY:
+				this->connectWindows->run();
+				break;
+
+			case GO_BACK:
+				this->menuDoublePlayerActivated = false;
+				break;
+			}
+			this->menuDoublePlayer->reset();
 		}
 	}
 	else if (this->menuGameSettingsActivated)
@@ -403,6 +442,10 @@ GameState::StateCode GameStateMainMenu::update()
 				this->menuSinglePlayerActivated = true;
 				break;
 
+			case DOUBLE_PLAYER:
+				this->menuDoublePlayerActivated = true;
+				break;
+
 			case HELP:
 				this->helpWindows->run();
 				break;
@@ -440,6 +483,9 @@ void GameStateMainMenu::draw()
 	if (this->menuSinglePlayerActivated)
 		this->layout->draw(this->menuSinglePlayer);
 
+	else if (this->menuDoublePlayerActivated)
+		this->layout->draw(this->menuDoublePlayer);
+
 	else if (this->menuGameSettingsActivated)
 		this->layout->draw(this->menuGameSettings);
 
@@ -471,6 +517,9 @@ void GameStateMainMenu::createMainMenu()
 	MenuItem* item;
 
 	item = new MenuItem("Single Player", SINGLE_PLAYER);
+	menu->add(item);
+
+	item = new MenuItem("Double Player", DOUBLE_PLAYER);
 	menu->add(item);
 
 	item = new MenuItem("Game Settings", GAME_SETTINGS);
@@ -544,6 +593,60 @@ void GameStateMainMenu::createSinglePlayerMenu()
 	                             GHOST_PIECE,
 	                             Globals::Profiles::current->settings.game.has_ghost);
 	menuSinglePlayer->add(check);
+}
+void GameStateMainMenu::createDoublePlayerMenu()
+{
+	SAFE_DELETE(this->menuDoublePlayer);
+
+	this->menuDoublePlayer = new Menu(1,
+	                                  1,
+	                                  this->layout->menu->getW() - 2,
+	                                  this->layout->menu->getH() - 2);
+
+	MenuItem* item;
+
+	item = new MenuItem("Make Ready", MAKE_READY);
+	menuDoublePlayer->add(item);
+
+	item = new MenuItem("Back", GO_BACK);
+	menuDoublePlayer->add(item);
+
+	menuDoublePlayer->addBlank();
+
+	MenuItemNumberbox* number;
+
+	number = new MenuItemNumberbox("Starting Level", STARTING_LEVEL, 1, 22, Globals::Profiles::current->scores->score.starting_level);
+	menuDoublePlayer->add(number);
+
+	number = new MenuItemNumberbox("Initial Noise", INITIAL_NOISE, 0, 20, Globals::Profiles::current->scores->score.initial_noise);
+	menuDoublePlayer->add(number);
+
+	MenuItemCheckbox* check;
+
+	check = new MenuItemCheckbox("Invisible",
+	                             INVISIBLE,
+	                             Globals::Profiles::current->scores->score.invisible);
+	menuDoublePlayer->add(check);
+
+	check = new MenuItemCheckbox("Slide Left",
+	                             SLIDE_LEFT,
+	                             Globals::Profiles::current->scores->score.slide_left);
+	menuDoublePlayer->add(check);
+
+	check = new MenuItemCheckbox("Slide Right",
+	                             SLIDE_RIGHT,
+	                             Globals::Profiles::current->scores->score.slide_right);
+	menuDoublePlayer->add(check);
+
+	check = new MenuItemCheckbox("Hold Piece",
+	                             HOLD_PIECE,
+	                             Globals::Profiles::current->settings.game.can_hold);
+	menuDoublePlayer->add(check);
+
+	check = new MenuItemCheckbox("Ghost Piece",
+	                             GHOST_PIECE,
+	                             Globals::Profiles::current->settings.game.has_ghost);
+	menuDoublePlayer->add(check);
 }
 void GameStateMainMenu::createGameSettingsMenu()
 {
@@ -781,5 +884,7 @@ void GameStateMainMenu::saveSettingsMenuSinglePlayer()
 	current->settings.game.can_hold    = this->menuSinglePlayer->getBool(HOLD_PIECE);
 	current->settings.game.has_ghost   = this->menuSinglePlayer->getBool(GHOST_PIECE);
 }
-
+void GameStateMainMenu::saveSettingsMenuDoublePlayer()
+{
+}
 

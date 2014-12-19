@@ -5,6 +5,7 @@
 #include <Game/Display/Layouts/LayoutMainMenu.hpp>
 #include <Engine/Graphics/Widgets/Menu.hpp>
 #include <Game/Display/WindowGameHelp.hpp>
+#include <Game/Display/WindowGameConnect.hpp>
 
 /// The Main Menu.
 ///
@@ -33,6 +34,9 @@ private:
 	Menu* menuSinglePlayer;
 	bool menuSinglePlayerActivated;
 
+	Menu* menuDoublePlayer;
+	bool menuDoublePlayerActivated;
+
 	Menu* menuGameSettings;
 	bool menuGameSettingsActivated;
 
@@ -46,16 +50,19 @@ private:
 	bool menuControlsActivated;
 
 	WindowGameHelp* helpWindows;
+	WindowGameConnect* connectWindows;
 
 	// easily create internal menus
 	void createMainMenu();
 	void createSinglePlayerMenu();
+	void createDoublePlayerMenu();
 	void createGameSettingsMenu();
 	void createGUIOptionsMenu();
 	void createControlsMenu();
 	void createProfilesMenu();
 	void saveSettingsMenuOptions();
 	void saveSettingsMenuSinglePlayer();
+	void saveSettingsMenuDoublePlayer();
 };
 
 #endif //GAMESTATEMAINMENU_H_DEFINED

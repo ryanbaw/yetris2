@@ -16,7 +16,7 @@ void GameStateFirstTime::load(int stack)
 {
 	UNUSED(stack);
 
-	this->layout = new LayoutFirstTime(80, 24);
+	this->layout = new LayoutFirstTime(100, 30);
 }
 
 int GameStateFirstTime::unload()

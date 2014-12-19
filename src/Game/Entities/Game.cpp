@@ -49,7 +49,7 @@ void Game::start()
 	this->userAskedToGoToMenu = false;
 	this->gameOver            = false;
 
-	this->layout = new LayoutGame(this, 80, 24);
+	this->layout = new LayoutGame(this, 100, 30);
 
 	// Creating the board and adding noise.
 	this->board = new Board(0, 0, DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
@@ -312,7 +312,7 @@ void Game::update()
 	// what currently is.
 	// It allows you to set a high current level even
 	// without clearing enough lines to get there.
-	unsigned int new_level = this->getLevel(Globals::Profiles::current->scores->score.lines);
+	int new_level = this->getLevel(Globals::Profiles::current->scores->score.lines);
 
 	if (new_level > Globals::Profiles::current->scores->score.level)
 		Globals::Profiles::current->scores->score.level = new_level;
