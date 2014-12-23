@@ -25,7 +25,7 @@
 
 #define _COMMON_SOCKET_CPP_
 
-#include "Socket.hpp"
+#include <Socket/Socket.hpp>
 
 namespace Socket
 {

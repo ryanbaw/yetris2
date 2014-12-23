@@ -25,7 +25,7 @@
 
 #define _SOCKETEXCEPTION_CPP_
 
-#include "Socket.hpp"
+#include <Socket/Socket.hpp>
 
 namespace Socket
 {
