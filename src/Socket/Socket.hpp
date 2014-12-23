@@ -176,12 +176,5 @@ namespace Socket
     };
 }
 
-#include "SocketException.cpp"
-#include "CommonSocket.cpp"
-#include "Datagram.cpp"
-#include "Address.cpp"
-#include "UDP.cpp"
-#include "TCP.cpp"
-
 #endif
 
